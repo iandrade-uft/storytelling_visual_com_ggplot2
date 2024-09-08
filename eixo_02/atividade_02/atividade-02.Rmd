@@ -1,0 +1,81 @@
+---
+title: "Untitled"
+author: "Igo da Costa Andrade"
+date: "2024-09-08"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Equação de Van der Pol
+
+
+```{r}
+
+
+
+# Instalar pacotes, se necessário
+# install.packages("phaseR")
+# install.packages("ggplot2")
+# install.packages("gganimate")
+
+library(phaseR)
+library(ggplot2)
+library(gganimate)
+library(dplyr)
+
+# Definir o sistema de equações diferenciais (Oscilador Harmônico)
+harmonicOscillator <- function(t, state, parameters) {
+  x <- state[1]
+  y <- state[2]
+  
+  dxdt <- y
+  dydt <- -x
+  
+  return(list(c(dxdt, dydt)))
+}
+
+# Passo 1: Resolver as trajetórias usando a função trajectory
+sol1 <- trajectory(harmonicOscillator, y0 = c(1, 0), tlim = c(0, 10), parameters = NULL)
+sol2 <- trajectory(harmonicOscillator, y0 = c(0, 2), tlim = c(0, 10), parameters = NULL)
+
+# Passo 2: Acessar a matriz de resultados (tempo, x, y) a partir do componente 'trajectory'
+traj1 <- sol1$trajectory  # Matriz com 3 colunas: tempo, x(t), y(t)
+traj2 <- sol2$trajectory
+
+# Verificando as dimensões (opcional)
+print(dim(traj1))  # Exemplo: 1001 linhas e 3 colunas (tempo, x, y)
+print(dim(traj2))
+
+# Passo 3: Estruturar os dados em um formato apropriado para ggplot2
+traj_data <- data.frame(
+  time = c(traj1[, 1], traj2[, 1]),  # Coluna de tempo
+  x = c(traj1[, 2], traj2[, 2]),     # Coluna de x
+  y = c(traj1[, 3], traj2[, 3]),     # Coluna de y
+  group = rep(1:2, each = nrow(traj1))  # Identificar grupos de trajetórias
+)
+
+# Passo 4: Criar o gráfico base usando ggplot2
+p <- plot(x=0,y=0)
+
+p <- p+ ggplot(traj_data, aes(x = x, y = y, group = group, color = factor(group))) +
+  geom_path(size = 1.2) +  # Traçar as trajetórias
+  theme_minimal() +
+  labs(title = 'Oscilador Harmônico: t = {frame_time}', x = 'x', y = 'y') +
+  theme(legend.position = "none")
+
+# Passo 5: Criar a animação usando gganimate
+anim <- p + transition_time(time) +
+  ease_aes('linear')
+
+# Passo 6: Mostrar a animação
+anim
+
+# Se você quiser salvar a animação como um GIF
+# anim_save("trajetorias.gif", animation = anim)
+
+```

@@ -167,7 +167,7 @@ head(rk4_df)
 
 p <- ggplot(data=rk4_df, aes(x=x, y=y)) +
   geom_segment(aes(xend=x_end, yend=y_end), color="steelblue") +
-  geom_segment(data=grid_df, aes(x=x, y=y, xend=x+dx, yend=y+dy), arrow=arrow(length=unit(0.1, "cm")), colour="gray") + 
+  #geom_segment(data=grid_df, aes(x=x, y=y, xend=x+dx, yend=y+dy), arrow=arrow(length=unit(0.1, "cm")), colour="gray") + 
   labs(
     title="Solução da Equação de Van der Pol",
     x=expression(V),
@@ -183,7 +183,7 @@ p <- ggplot(data=rk4_df, aes(x=x, y=y)) +
 
 
 ```{r}
-animate(p, nframes = 100)
+animate(p, nframes = 10)
 ```
 
 
