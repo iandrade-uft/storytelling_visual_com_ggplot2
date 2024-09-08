@@ -1,0 +1,191 @@
+---
+title: "Atividade 2: Oscilador de Van der Pol"
+author: "Igo da Costa Andrade"
+date: ""
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Bibliotecas necessárias
+## Bibliotecas Básicas
+library(tidyverse)
+library(grid)
+library(latex2exp)
+```
+
+
+## Público Alvo
+
+
+* **Estudantes de Engenharia ou Física** e **Pesquisadores e Profissionais em Dinâmica de Sistemas** que possuam um bom entendimento de matemática e física, incluindo equações diferenciais e sistemas dinâmicos ou desejem entender o comportamento dinâmico de sistemas oscilatórios não lineares e como a equação de Van der Pol modela esses sistemas.
+
+
+### Contexto
+
+* Explicação teórica da equação de Van der Pol e suas aplicações em modelagem de sistemas oscilatórios.
+* Criação do Campo de Direções para o sistema dinâmico
+* Solução computacional da equação de Van der Pol por meio do Método de Runge-Kutta de ordem 4
+
+
+## A equação de Van der Pol
+
+A **equação de Van der Pol** é uma equação diferencial não linear de segunda ordem que foi introduzida por Balthasar van der Pol enquanto estudava circuitos elétricos contendo válvulas triodo. Esses circuitos triodos apresentam um comportamento oscilatório auto-regulador, e a equação de Van der Pol foi usada para descrever o comportamento de osciladores relaxantes.
+
+
+
+A equação de Van der Pol tem a forma geral:
+
+\begin{equation}
+\ddot{x} - \mu \left(1 - x^2\right)\dot{x} + x = 0 \label{eq:vdp}
+\end{equation}
+em que:
+
+* $x = x(t)$ é a **diferença de potencial (voltavem)** no circuito no instante de tempo $t$;
+* $\dot{x}$ e $\ddot{x}$ representam, respectivamente, a primeira  e a segunda derivadas de $x$ com relação ao tempo $t$;
+* $\mu$ é um parâmetro positivo que controla a não linearidade e o grau de amortecimento do sistema.
+
+Escrevamos a equação de Van der Pol como um sistema de equaçãoes diferenciais de primeira ordem introduzindo a variável $y = \dot{x}$, tal que:
+
+\begin{align*}
+  \begin{cases}
+    \dot{x} = y\\
+    \dot{y} = -x + \mu \left(1 - x^2\right) y\\
+  \end{cases}
+\end{align*}
+
+## Campo de Direções
+
+* O código seguinte oscilador de Van der Pol na forma de um sistema de equações:
+
+```{r}
+vanderpol <- function(x, y, mu=0.5) {
+  dxdt <- y
+  dydt <- -x + mu * (1-x^2) * y
+  return(c(dxdt, dydt))
+}
+```
+
+* Bloco de código de uma função para a construção do campo de direções  do oscilador de Van der Pol. A função `vanderpol.field`  é usada para gerar um campo de vetores para a equação de Van der Pol. Esse campo de vetores ajuda a visualizar o comportamento do sistema dinâmico descrito pela equação de Van der Pol em um espaço de fase.
+
+```{r}
+vanderpol.field <- function(x.grid, y.grid, mu=0.5, k=4) {
+  x <- c()
+  y <- c()
+  dx <- c()
+  dy <- c()
+  for (xi in x.grid) {
+    for (yi in y.grid) {
+      slope <- vanderpol(xi, yi, mu=mu)
+      slope <- slope / (k * sqrt(sum(slope^2)))
+      x <- append(x, xi)
+      y <- append(y, yi)
+      dx <- append(dx, slope[1])
+      dy <- append(dy, slope[2])
+    }
+  }
+  df <- data.frame(x=x, y=y, dx=dx, dy=dy) %>% mutate(mu=mu) %>% drop_na()
+  return(df)
+}
+```
+
+
+
+* A função `RK4` implementa o método de Runge-Kutta de quarta ordem para resolver sistemas de equações diferenciais ordinárias (EDOs) numericamente.
+
+```{r}
+RK4 <- function(x0, y0, mu=0.5, t0=0, t1=10, N=11) {
+  h  <- (t1-t0)/(N-1)
+  t <- seq(from=t0, to=t1, by=h)
+  x <- c(x0)
+  y <- c(y0)
+  for (i in 2:N) {
+    K1 <- h * vanderpol(x[i-1], y[i-1], mu=mu)
+    K2 <- h * vanderpol(x[i-1]+K1[1]/2, y[i-1] + K1[2]/2, mu=mu)
+    K3 <- h * vanderpol(x[i-1]+K2[1]/2, y[i-1] + K2[2]/2, mu=mu)
+    K4 <- h * vanderpol(x[i-1]+K3[1], y[i-1]+K3[2], mu=mu)
+    
+    K <- (K1 + 2*K2 + 2*K3 + K4)/6
+    k <- K[1]
+    l <- K[2]
+    x <- append(x, x[i-1]+k)
+    y <- append(y, y[i-1]+l)
+  }
+  df <- data.frame(t=t, x=x, y=y) %>% mutate(mu=mu)
+  return(df)
+}
+```
+
+
+### Aplicação para um fator de amortecimento $\mu = 0.8$
+
+```{r}
+# Fator de amortecimento
+mu <- 0.8
+
+# Grade do campo de direções
+x.grid <- seq(from=-4, to=4, by=0.5)
+y.grid <- seq(from=-4, to=4, by=0.5)
+grid_df <- vanderpol.field(x.grid, y.grid, mu=mu, k=4)
+
+
+# Solução Numérica po RK4
+pvi1 <- c(x0=-3, y0=3)
+pvi2 <- c(x0=0.5, y0=0.5)
+pvi1_df <- RK4(x0=-3, y0=3, mu=mu, t0=1, t1=20, N=501) %>% mutate(pvi="PVI1")
+pvi2_df <- RK4(x0=0.5, y0=.50, mu=mu, t0=1, t1=20, N=501) %>% mutate(pvi="PVI2")
+rk4_df <- rbind(pvi1_df, pvi2_df) 
+```
+
+
+### Gráficos
+
+```{r, fig.align='center', warning=FALSE}
+ggplot() +
+  geom_segment(data=grid_df, mapping=aes(x=x, y=y, xend=x+dx, yend=y+dy), arrow=arrow(length=(unit(0.1, "cm"))), colour="gray") +
+  geom_path(data=rk4_df, mapping=aes(x=x, y=y, colour=pvi)) +
+  geom_point(aes(x=pvi1[1], y=pvi1[2]), color="salmon") +
+  geom_point(aes(x=pvi2[1],y=pvi2[2]), color="steelblue") +
+  geom_point(aes(x=0, y=0)) +
+  annotate("text", x=0, y=0, label="Nó repulsor", vjust=1.5) +
+  labs(
+    title="Campo de Direções da Equação de Van der Pol",
+    subtitle="Todas as trajetórias tendem ao ciclo limite",
+    x=expression(x),
+    y=expression(dot(x)),
+    color="Condição inicial"
+  ) +
+  scale_color_manual(
+    values = c("salmon","steelblue"),
+    labels = unname(TeX(c(sprintf("$x_0=%.1f, \\dot{x}_0=%.1f$", pvi1[1], pvi1[2]), sprintf("$x_0=%.1f, \\dot{x}_0=%.1f$", pvi2[1], pvi2[2]))))
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = c(0.87, 0.87),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+```
+```{r, fig.align='center'}
+ggplot(data=rk4_df, mapping=aes(x=t, y=x, colour=pvi)) +
+  geom_line() + 
+  labs(
+    title="Gráfico da Solução da Equação de Van der Pol",
+    subtitle="Todas as soluções tendem a um regime oscilatório",
+    x=expression(t),
+    y=expression(x),
+    color="Condição inicial"
+  ) +
+  scale_color_manual(
+    values = c("salmon","steelblue"),
+    labels = unname(TeX(c(sprintf("$x_0=%.1f, \\dot{x}_0=%.1f$", pvi1[1], pvi1[2]), sprintf("$x_0=%.1f, \\dot{x}_0=%.1f$", pvi2[1], pvi2[2]))))
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = c(0.88, 0.87),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+```
+
