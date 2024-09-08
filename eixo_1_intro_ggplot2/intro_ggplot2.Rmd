@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 * Carregamento das bibliotecas necessárias:
 
 ```{r}
+library(dplyr)
 library(ggplot2)
 ```
 
@@ -81,4 +82,61 @@ ggplot(data = dados,
   theme_bw()
 ```
 
+### Exemplo 3: Gráfico de Barras
+
+```{r}
+data("starwars")
+glimpse((starwars))
+```
+```{r}
+head(starwars)
+```
+
+
+#### Resumo dos dados de distribuição de cores dos olhos
+
+```{r}
+starwars %>%
+  group_by(eye_color) %>%
+  summarise(n= n())
+```
+
+```{r}
+starwars %>%
+  group_by(eye_color) %>%
+  summarise(n = n()) %>%
+    ggplot(aes(x = n, y = eye_color)) +
+  geom_bar(stat = "identity") +
+  theme_bw()
+```
+
+```{r}
+starwars %>%
+  group_by(eye_color) %>%
+  summarise(n = n()) %>%
+    ggplot(aes(x = n, y = reorder(eye_color, n))) +
+  geom_bar(stat = "identity") +
+  theme_bw()
+```
+
+```{r}
+starwars %>%
+  group_by(eye_color) %>%
+  summarise(n = n()) %>%
+    ggplot(aes(x = n, y = reorder(eye_color, n), label = n)) +
+  geom_bar(stat = "identity") +
+  geom_label() +
+  theme_bw()
+```
+
+
+```{r}
+starwars %>%
+  group_by(eye_color, gender) %>%
+  summarise(n = n()) %>%
+  ggplot(aes(x = n, y=reorder(eye_color, n), fill=gender, label=n)) +
+  geom_bar(stat="identity") +
+  geom_label(position="stack") +
+  theme_bw()
+```
 

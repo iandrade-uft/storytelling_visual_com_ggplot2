@@ -1,0 +1,122 @@
+---
+title: 'Atividade 01: Análise de Participação em Atividades Extracurriculares'
+author: "Igo da Costa Andrade"
+date: "2024-09-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Contexto do Estudo de Caso
+
+
+Imagine que você está analisando a participação dos alunos em atividades extracurriculares ao longo de um semestre. A universidade organizou uma série de workshops e eventos sobre “Desenvolvimento Pessoal e Profissional", e você foi encarregado de analisar a eficácia dessas atividades.
+
+
+A base de dados que você recebeu contém três variáveis:
+
+* **Idade**: A faixa etária dos alunos que participaram.
+* **Gênero**: O gênero dos participantes.
+* **Quantidade**: O número de atividades em que os alunos de cada faixa etária e gênero participaram.
+
+
+O objetivo da sua análise é entender o comportamento dos alunos em relação à participação nas atividades.
+
+Você deve criar um gráfico que ajude a responder às seguintes perguntas:
+
+1. Como a idade e o gênero influenciam a participação dos alunos nas atividades extracurriculares?
+2. Há alguma tendência ou padrão que possa ser identificado nos dados?
+
+
+Utilizando o pacote `ggplot2` , escolha uma visualização adequada para mostrar a relação entre idade, gênero e quantidade de participação.
+
+
+Criar uma narrativa que comunique de forma clara e eficaz os principais insights extraídos dos dados.
+
+## Resolução
+
+### Bibliotecas necessárias
+
+
+```{r dependencias}
+# Dependências
+library(tidyverse)
+library(gt)
+```
+
+### Base de Dados
+```{r dados}
+# Base de Dados
+dados <- data.frame(
+  idade = c(18, 19, 20, 21, 22, 23, 18, 19, 20, 21, 22, 23),
+  genero = c("Feminino", "Feminino", "Feminino", "Feminino","Feminino", "Feminino", "Masculino", "Masculino", "Masculino", "Masculino", "Masculino", "Masculino"),
+  quantidade = c(16, 26, 21, 8,4, 2, 14, 25, 20, 15, 10, 8))
+```
+
+
+Visualização preliminar em formato tabular:
+```{r}
+# Tabela de Dados
+dados |>
+  gt() |>
+  gt::tab_header(title = "Participação em Atividades Extracurriculares",
+  subtitle = "Workshop sobre Desenvolvimento Pessoal e Profissional") |>
+  gt::cols_label(idade = "Faixa Etária (anos)", genero = "Gênero", quantidade = "Número de Atividades")
+```
+
+
+
+
+### Criação do Gráfico para Análise
+
+```{r fig.align='center', message=FALSE, warning=FALSE}
+# Gráfico
+dados |>
+  ggplot(aes(x=idade, y=quantidade, color=genero)) +
+  geom_line() +
+  geom_point() +
+  scale_color_manual(values = c("Masculino" = "#1f77b4", "Feminino" = "#e377c2")) +
+  labs(
+    title = "Participação dos Alunos em Atividades Extracurriculares",
+    subtitle = "Tendência da participação em função da faixa etária e do gênero",
+    x = "Faixa Etária (anos)",
+    y = "Número de Atividades",
+    color = "Gênero"
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = c(0.98, 0.98),
+    legend.justification = c("right", "top"),
+    legend.background = element_rect(fill = alpha("white", 0.5))
+  )
+```
+
+## Análise da visualização gráfica
+
+
+* Quanto ao impacto da **idade**, observa-se que os estudantes mais jovens (18 a 20 anos) têm uma participação maior em atividades do que os estudantes mais velhos. Entre os jovens, há um pico aos 19 anos. A partir dessa idade, há uma queda contínua na participação em atividades extracurriculares.
+
+* O aspecto geral descrito acima ocorre para ambos os gêneros. Com relação ao fator **gênero**, as alunas mais jovens (18 a 20 anos) têm uma participação levemente superior à dos alunos na mesma faixa etária. Entretanto, a queda na participação a partir dos 20 anos é mais acentuada para as alunas do que para os alunos.
+
+* A diminuição do engajamento típico em atividades extracurriculares, observada tanto para o gênero masculino quanto para o gênero feminino a partir dos 20 anos de idade, pode indicar que esses estudantes estão assumindo mais responsabilidades (trabalho, constituição de família ou aumento das dificuldades enfrentadas durante o curso).
+
+* No caso das alunas, a queda mais brusca observada pode estar relacionada à maternidade e ao aumento das responsabilidades domésticas desempenhadas pelas mulheres no contexto da cultura brasileira. Essa carga adicional de trabalho doméstico, que muitas vezes é não remunerada e invisível, pode reduzir significativamente o tempo e a energia disponíveis para as alunas se dedicarem a atividades extracurriculares.
+
+* Sugere-se:
+  - Flexibilização de horários em que as disciplinas são ofertadas, bem como formas alternativas de participação nas atividades acadêmicas (como o ensino remoto);
+  - Criação de espaços de inclusão para as mulheres com filhos, como salas de amamentação e creches para crianças pequenas dentro do campus universitário;
+  - Programas de conscientização que:
+    * incentivem a divisão equitativa das tarefas domésticas entre homens e mulheres;
+    * orientem quanto à educação sexual e métodos contraceptivos;
+    * promovam a organização social das mulheres para reivindicar serviços públicos e políticas orientadas à redução da carga de trabalho doméstico.
+
+
+
+
+
+
+
+
+
